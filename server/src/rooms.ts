@@ -42,7 +42,7 @@ export async function getRoomState(): Promise<RoomState> {
 			console.log('saving snapshot')
 			saveSnapshot(roomState.room.getCurrentSnapshot())
 		}
-	}, 30_000)
+	}, 10_000)
 
 	return roomState
 }
