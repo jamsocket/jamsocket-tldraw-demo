@@ -1,0 +1,6 @@
+{
+    "dockerfile": "./Dockerfile",
+    "watch": [
+        "./src/"
+    ]
+}

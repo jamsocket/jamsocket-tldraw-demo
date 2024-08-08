@@ -1,0 +1,25 @@
+name: Deploy to Jamsocket
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Deploy to Jamsocket
+        uses: jamsocket/jamsocket-deploy-action@v0.1.3
+        with:
+          jamsocket_api_token: ${{ secrets.JAMSOCKET_TOKEN }}
+          jamsocket_account: ${{ secrets.JAMSOCKET_ACCOUNT }}
+          jamsocket_service: ${{ secrets.JAMSOCKET_SERVICE }}
+          docker_build_context: ./server
+          dockerfile_path: ./server/Dockerfile
