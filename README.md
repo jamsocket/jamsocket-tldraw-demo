@@ -37,6 +37,10 @@ Deploy the client using a service that supports deploying Next.js from a git rep
 - `JAMSOCKET_SERVICE` - the name of your service, e.g. `tldraw` if you followed the example above
 - `JAMSOCKET_TOKEN` - a Jamsocket access token. You can create one on the settings page of the Jamsocket web app
 
+To persist data on S3, you must pass in `AWS_SECRET_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. These can be passed in the
+environment when spawning (see `client/src/app/page.tsx`), but the recommended way is to use Jamsocket's new (beta) S3 integration. Reach out to
+hi@jamsocket.com for instructions on enabling this.
+
 ### Automating deploys from GitHub
 
 This git repo includes a workflow for automatically building and pushing to Jamsocket. To use it, clone this repo and set the same 

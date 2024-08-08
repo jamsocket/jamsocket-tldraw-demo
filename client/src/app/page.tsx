@@ -47,15 +47,11 @@ export default async function Home({ searchParams }: Props) {
     env: {
       STORAGE_BUCKET: 'tldraw-jamsocket-demo',
       STORAGE_PREFIX: docId,
+      // We recommend using Jamsocket's AWS integration in production, rather than
+      // passing credentials in as env vars, but it can be useful for testing.
+      // AWS_ACCESS_KEY_ID: '',
+      // AWS_SECRET_ACCESS_KEY: '',
     }
-    // We recommend using Jamsocket's AWS integration in production, rather than
-    // passing credentials in as env vars, but it can be useful for testing.
-    // env: {
-    //   AWS_ACCESS_KEY_ID: '',
-    //   AWS_SECRET_ACCESS_KEY: '',
-    //   STORAGE_BUCKET: '',
-    //   STORAGE_BUCKET_PREFIX: docId,
-    // }
   })
 
   console.log('spawnResult', spawnResult, 'docId', docId)
