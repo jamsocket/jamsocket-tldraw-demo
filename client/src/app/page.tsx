@@ -1,6 +1,7 @@
 import App from "@/components/App";
 import { Jamsocket } from '@jamsocket/server'
 import DocIdSetter from "../components/DocIdSetter";
+import { PageProps } from "../../.next/types/app/page";
 
 const JAMSOCKET_ACCOUNT = process.env.JAMSOCKET_ACCOUNT;
 const JAMSOCKET_SERVICE = process.env.JAMSOCKET_SERVICE;
@@ -35,13 +36,14 @@ function randomDocId() {
   return Math.random().toString(36).substring(2, 15);
 }
 
-export default async function Home({ searchParams }: Props) {
+export default async function Home(props: PageProps) {
+  const searchParams = await props.searchParams;
   let docId = searchParams.docId || randomDocId();
 
   // This code runs on the server. It's a good place to check if the user has permissions
   // to access the document! If they don't, you can return a 403 error here.
   // For the sample code, we are assuming that every user can access every document.
-  
+
   const spawnResult = await jamsocket.connect({
     key: docId,
     spawn: {
