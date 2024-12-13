@@ -1,5 +1,5 @@
 import App from "@/components/App";
-import Jamsocket, { JamsocketInstance } from '@jamsocket/server'
+import { Jamsocket } from '@jamsocket/server';
 import DocIdSetter from "../components/DocIdSetter";
 
 const JAMSOCKET_ACCOUNT = process.env.JAMSOCKET_ACCOUNT;
@@ -7,9 +7,9 @@ const JAMSOCKET_SERVICE = process.env.JAMSOCKET_SERVICE;
 const JAMSOCKET_TOKEN = process.env.JAMSOCKET_TOKEN;
 const JAMSOCKET_DEV = process.env.JAMSOCKET_DEV;
 
-let jamsocket: JamsocketInstance;
+let jamsocket: Jamsocket;
 if (JAMSOCKET_DEV) {
-  jamsocket = Jamsocket.init({
+  jamsocket = new Jamsocket({
     dev: true,
   })
 } else {
@@ -20,37 +20,46 @@ if (JAMSOCKET_DEV) {
     )
   }
 
-  jamsocket = Jamsocket.init({
+  jamsocket = new Jamsocket({
     account: JAMSOCKET_ACCOUNT,
     service: JAMSOCKET_SERVICE,
     token: JAMSOCKET_TOKEN,
   })
 }
 
-type Props = {
-  searchParams: Record<string, string>
-}
-
 function randomDocId() {
   return Math.random().toString(36).substring(2, 15);
 }
 
-export default async function Home({ searchParams }: Props) {
-  let docId = searchParams.docId || randomDocId();
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function Home(props: Props) {
+  const searchParams = await props.searchParams;
+  let docId = searchParams.docId;
+  if (typeof docId !== 'string') {
+    console.log('No docId found in URL. Generating a random one.');
+    docId = randomDocId();
+  }
 
   // This code runs on the server. It's a good place to check if the user has permissions
   // to access the document! If they don't, you can return a 403 error here.
   // For the sample code, we are assuming that every user can access every document.
-  
-  const spawnResult = await jamsocket.spawn({
-    lock: docId,
-    env: {
-      STORAGE_BUCKET: 'tldraw-jamsocket-demo',
-      STORAGE_PREFIX: docId,
-      // We recommend using Jamsocket's AWS integration in production, rather than
-      // passing credentials in as env vars, but it can be useful for testing.
-      // AWS_ACCESS_KEY_ID: '',
-      // AWS_SECRET_ACCESS_KEY: '',
+
+  const spawnResult = await jamsocket.connect({
+    key: docId,
+    spawn: {
+      executable: {
+        env: {
+          STORAGE_BUCKET: 'tldraw-jamsocket-demo',
+          STORAGE_PREFIX: docId,
+          // We recommend using Jamsocket's AWS integration in production, rather than
+          // passing credentials in as env vars, but it can be useful for testing.
+          // AWS_ACCESS_KEY_ID: '',
+          // AWS_SECRET_ACCESS_KEY: '',
+        }
+      }
     }
   })
 
