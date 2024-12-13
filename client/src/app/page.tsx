@@ -1,5 +1,5 @@
 import App from "@/components/App";
-import { Jamsocket } from '@jamsocket/server';
+import { Jamsocket } from "@jamsocket/server";
 import DocIdSetter from "../components/DocIdSetter";
 
 const JAMSOCKET_ACCOUNT = process.env.JAMSOCKET_ACCOUNT;
@@ -11,20 +11,20 @@ let jamsocket: Jamsocket;
 if (JAMSOCKET_DEV) {
   jamsocket = new Jamsocket({
     dev: true,
-  })
+  });
 } else {
   if (!JAMSOCKET_ACCOUNT || !JAMSOCKET_SERVICE || !JAMSOCKET_TOKEN) {
     throw new Error(
-      'Missing environment variables JAMSOCKET_ACCOUNT, JAMSOCKET_SERVICE, or JAMSOCKET_TOKEN. ' +
-      'If you intend to run in local dev mode, set JAMSOCKET_DEV=true.'
-    )
+      "Missing environment variables JAMSOCKET_ACCOUNT, JAMSOCKET_SERVICE, or JAMSOCKET_TOKEN. " +
+        "If you intend to run in local dev mode, set JAMSOCKET_DEV=true.",
+    );
   }
 
   jamsocket = new Jamsocket({
     account: JAMSOCKET_ACCOUNT,
     service: JAMSOCKET_SERVICE,
     token: JAMSOCKET_TOKEN,
-  })
+  });
 }
 
 function randomDocId() {
@@ -32,14 +32,14 @@ function randomDocId() {
 }
 
 type Props = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
 export default async function Home(props: Props) {
   const searchParams = await props.searchParams;
   let docId = searchParams.docId;
-  if (typeof docId !== 'string') {
-    console.log('No docId found in URL. Generating a random one.');
+  if (typeof docId !== "string") {
+    console.log("No docId found in URL. Generating a random one.");
     docId = randomDocId();
   }
 
@@ -52,20 +52,20 @@ export default async function Home(props: Props) {
     spawn: {
       executable: {
         env: {
-          STORAGE_BUCKET: 'tldraw-jamsocket-demo',
+          STORAGE_BUCKET: "tldraw-jamsocket-demo",
           STORAGE_PREFIX: docId,
           // We recommend using Jamsocket's AWS integration in production, rather than
           // passing credentials in as env vars, but it can be useful for testing.
           // AWS_ACCESS_KEY_ID: '',
           // AWS_SECRET_ACCESS_KEY: '',
-        }
-      }
-    }
-  })
+        },
+      },
+    },
+  });
 
-  console.log('spawnResult', spawnResult, 'docId', docId)
+  console.log("spawnResult", spawnResult, "docId", docId);
 
-  const serverUrl = spawnResult.url.replace(/\/$/, '');
+  const serverUrl = spawnResult.url.replace(/\/$/, "");
 
   return (
     <>

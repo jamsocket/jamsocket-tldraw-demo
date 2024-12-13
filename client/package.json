@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -13,6 +14,7 @@
     "@tldraw/sync": "^3.6.0",
     "@tldraw/sync-core": "^3.6.0",
     "next": "^15.1.0",
+    "prettier": "^3.4.2",
     "react": "^18",
     "react-dom": "^18",
     "tldraw": "^3.6.0"
