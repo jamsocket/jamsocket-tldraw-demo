@@ -1,7 +1,6 @@
 import App from "@/components/App";
-import { Jamsocket } from '@jamsocket/server'
+import { Jamsocket } from '@jamsocket/server';
 import DocIdSetter from "../components/DocIdSetter";
-import { PageProps } from "../../.next/types/app/page";
 
 const JAMSOCKET_ACCOUNT = process.env.JAMSOCKET_ACCOUNT;
 const JAMSOCKET_SERVICE = process.env.JAMSOCKET_SERVICE;
@@ -28,17 +27,21 @@ if (JAMSOCKET_DEV) {
   })
 }
 
-type Props = {
-  searchParams: Record<string, string>
-}
-
 function randomDocId() {
   return Math.random().toString(36).substring(2, 15);
 }
 
-export default async function Home(props: PageProps) {
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function Home(props: Props) {
   const searchParams = await props.searchParams;
-  let docId = searchParams.docId || randomDocId();
+  let docId = searchParams.docId;
+  if (typeof docId !== 'string') {
+    console.log('No docId found in URL. Generating a random one.');
+    docId = randomDocId();
+  }
 
   // This code runs on the server. It's a good place to check if the user has permissions
   // to access the document! If they don't, you can return a 403 error here.
