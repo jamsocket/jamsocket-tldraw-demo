@@ -3,10 +3,7 @@
 import { useSync } from "@tldraw/sync";
 import { useMemo } from "react";
 import {
-  AssetRecordType,
-  getHashForString,
   TLAssetStore,
-  TLBookmarkAsset,
   Tldraw,
   uniqueId,
 } from "tldraw";
@@ -46,8 +43,10 @@ function getMultiplayerAssets(server: string): TLAssetStore {
     async upload(_asset, file) {
       const id = uniqueId();
 
-      const objectName = `${id}-${file.name}`;
-      const url = `${server}/uploads/${encodeURIComponent(objectName)}`;
+      const extension = file.name.split(".").pop();
+      const objectName = `${id}.${extension}`;
+      const relativeUrl = `uploads/${objectName}`;
+      const url = `${server}/${relativeUrl}`;
 
       const response = await fetch(url, {
         method: "PUT",
@@ -61,7 +60,22 @@ function getMultiplayerAssets(server: string): TLAssetStore {
       return url;
     },
     resolve(asset) {
-      return asset.props.src;
+      console.log('asset', asset)
+      if (asset.props.src === null) {
+        return null;
+      }
+      let url = asset.props.src
+
+      let match = url.match(/\/uploads\/(.*)$/)
+      if (!match) {
+        return null
+      }
+
+      let id = match[1]
+
+      url = `${server}/uploads/${id}`
+      console.log('url', url)
+      return url
     },
   };
 }
