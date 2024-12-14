@@ -28,7 +28,7 @@ export async function storeAsset(id: string, stream: Readable) {
 		const data = await readStream(stream)
 		CACHE.set(id, { data })
 
-		writeToS3(`assets/${id}`, data)
+		await writeToS3(`assets/${id}`, data)
 	} catch (error) {
 		console.error(error)
 		throw error
@@ -40,15 +40,19 @@ export async function loadAsset(id: string): Promise<Uint8Array | null> {
 	asset = CACHE.get(id)
 	
 	if (asset) {
+		console.log('from cache', id)
 		return asset.data
 	}
 
 	asset = await readFromS3(`assets/${id}`)
 
 	if (asset) {
+		console.log('from s3', id)
 		CACHE.set(id, { data: asset })
-		return asset.data
+		return asset
 	}
+
+	console.log('not found', id)
 
 	return null
 }
