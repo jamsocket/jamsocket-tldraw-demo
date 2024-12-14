@@ -49,5 +49,4 @@ This git repo includes a workflow for automatically building and pushing to Jams
 ### Bucket layout
 
 - `tldraw-doc.json` - the last persisted snapshot
-- `wal/<id>.json` - write-ahead log
 - `assets/<id>` - uploaded assets
