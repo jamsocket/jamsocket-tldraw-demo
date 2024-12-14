@@ -1,77 +1,64 @@
-"use client";
+'use client'
 
-import { useSync } from "@tldraw/sync";
-import { useMemo } from "react";
-import {
-  TLAssetStore,
-  Tldraw,
-  uniqueId,
-} from "tldraw";
+import { useSync } from '@tldraw/sync'
+import { useMemo } from 'react'
+import { TLAssetStore, Tldraw, uniqueId } from 'tldraw'
 
 interface AppProps {
-  server: string;
-  roomId: string;
+  server: string
+  roomId: string
 }
 
 function App(props: AppProps) {
-  let multiplayerAssets = useMemo(
-    () => getMultiplayerAssets(props.server),
-    [props.server],
-  );
+  let multiplayerAssets = useMemo(() => getMultiplayerAssets(props.server), [props.server])
 
   const store = useSync({
     uri: `${props.server}/connect/${props.roomId}`,
     assets: multiplayerAssets,
-  });
+  })
 
   return (
-    <div style={{ position: "fixed", inset: 0 }}>
-      <Tldraw
-        store={store}
-      />
+    <div style={{ position: 'fixed', inset: 0 }}>
+      <Tldraw store={store} />
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
 
 function getMultiplayerAssets(server: string): TLAssetStore {
   return {
     async upload(_asset, file) {
-      const id = uniqueId();
+      const id = uniqueId()
 
-      const extension = file.name.split(".").pop();
-      const objectName = `${id}.${extension}`;
-      const relativeUrl = `uploads/${objectName}`;
-      const url = `${server}/${relativeUrl}`;
+      const extension = file.name.split('.').pop()
+      const objectName = `${id}.${extension}`
+      const url = `${server}/uploads/${objectName}`
 
       const response = await fetch(url, {
-        method: "PUT",
+        method: 'PUT',
         body: file,
-      });
+      })
 
       if (!response.ok) {
-        throw new Error(`Failed to upload asset: ${response.statusText}`);
+        throw new Error(`Failed to upload asset: ${response.statusText}`)
       }
 
-      return url;
+      return 'asset:' + objectName
     },
     resolve(asset) {
-      if (asset.props.src === null) {
-        return null;
-      }
-      let url = asset.props.src
+      let src = asset.props.src
 
-      let match = url.match(/\/uploads\/(.*)$/)
-      if (!match) {
+      if (!src) {
         return null
       }
 
-      let id = match[1]
+      if (src.startsWith('asset:')) {
+        let objectId = src.split('asset:')[1]
+        return `${server}/uploads/${objectId}`
+      }
 
-      url = `${server}/uploads/${id}`
-      console.log('url', url)
-      return url
+      return null
     },
-  };
+  }
 }

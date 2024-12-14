@@ -33,19 +33,19 @@ async function main() {
 
     app.addContentTypeParser('*', (_, __, done) => done(null))
     app.put('/uploads/:id', {}, async (req, res) => {
-    	const id = (req.params as any).id as string
-    	await storeAsset(id, req.raw)
-    	res.send({ ok: true })
+      const id = (req.params as any).id as string
+      await storeAsset(id, req.raw)
+      res.send({ ok: true })
     })
     app.get('/uploads/:id', async (req, res) => {
-    	const id = (req.params as any).id as string
-    	const data = await loadAsset(id)
-		if (!data) {
-			res.status(404)
-			return
-		}
+      const id = (req.params as any).id as string
+      const data = await loadAsset(id)
+      if (!data) {
+        res.status(404)
+        return
+      }
 
-    	res.send(data)
+      res.send(data)
     })
   })
 
