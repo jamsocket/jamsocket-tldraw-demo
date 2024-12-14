@@ -1,17 +1,19 @@
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { readFromS3, writeToS3 } from './persist'
 
+const DOC_FILENAME = 'tldraw-doc.json'
+
 interface RoomState {
   room: TLSocketRoom
   needsPersist: boolean
 }
 
 export async function getRoomState(): Promise<RoomState> {
-  let initialSnapshotJson = (await readFromS3()) ?? undefined
+  let initialSnapshotJson = await readFromS3(DOC_FILENAME)
 
   let initialSnapshot: RoomSnapshot | undefined
-  if (typeof initialSnapshotJson === 'string') {
-    initialSnapshot = JSON.parse(initialSnapshotJson) as RoomSnapshot
+  if (initialSnapshotJson) {
+    initialSnapshot = JSON.parse(initialSnapshotJson.toString('utf-8')) as RoomSnapshot
   }
 
   let roomState = {
@@ -32,7 +34,7 @@ export async function getRoomState(): Promise<RoomState> {
   }
 
   async function saveSnapshot(snapshot: RoomSnapshot) {
-    writeToS3(JSON.stringify(snapshot))
+    writeToS3(DOC_FILENAME, JSON.stringify(snapshot))
   }
 
   setInterval(() => {

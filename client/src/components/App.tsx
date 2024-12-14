@@ -1,120 +1,64 @@
-"use client";
+'use client'
 
-import { useSync } from "@tldraw/sync";
-import { useMemo } from "react";
-import {
-  AssetRecordType,
-  getHashForString,
-  TLAssetStore,
-  TLBookmarkAsset,
-  Tldraw,
-  uniqueId,
-} from "tldraw";
+import { useSync } from '@tldraw/sync'
+import { useMemo } from 'react'
+import { TLAssetStore, Tldraw, uniqueId } from 'tldraw'
 
 interface AppProps {
-  server: string;
-  roomId: string;
+  server: string
+  roomId: string
 }
 
 function App(props: AppProps) {
-  let multiplayerAssets = useMemo(
-    () => getMultiplayerAssets(props.server),
-    [props.server],
-  );
+  let multiplayerAssets = useMemo(() => getMultiplayerAssets(props.server), [props.server])
 
-  // Create a store connected to multiplayer.
   const store = useSync({
-    // We need to know the websocket's URI...
     uri: `${props.server}/connect/${props.roomId}`,
-    // ...and how to handle static assets like images & videos
     assets: multiplayerAssets,
-  });
+  })
 
   return (
-    <div style={{ position: "fixed", inset: 0 }}>
-      <Tldraw
-        // we can pass the connected store into the Tldraw component which will handle
-        // loading states & enable multiplayer UX like cursors & a presence menu
-        store={store}
-        onMount={(editor) => {
-          // when the editor is ready, we need to register out bookmark unfurling service
-          editor.registerExternalAssetHandler(
-            "url",
-            ({ url }: { url: string }) =>
-              unfurlBookmarkUrl({ url, server: props.server }),
-          );
-        }}
-      />
+    <div style={{ position: 'fixed', inset: 0 }}>
+      <Tldraw store={store} />
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
 
-// How does our server handle assets like images and videos?
 function getMultiplayerAssets(server: string): TLAssetStore {
   return {
-    // to upload an asset, we prefix it with a unique id, POST it to our worker, and return the URL
     async upload(_asset, file) {
-      const id = uniqueId();
+      const id = uniqueId()
 
-      const objectName = `${id}-${file.name}`;
-      const url = `${server}/uploads/${encodeURIComponent(objectName)}`;
+      const extension = file.name.split('.').pop()
+      const objectName = `${id}.${extension}`
+      const url = `${server}/uploads/${objectName}`
 
       const response = await fetch(url, {
-        method: "PUT",
+        method: 'PUT',
         body: file,
-      });
+      })
 
       if (!response.ok) {
-        throw new Error(`Failed to upload asset: ${response.statusText}`);
+        throw new Error(`Failed to upload asset: ${response.statusText}`)
       }
 
-      return url;
+      return 'asset:' + objectName
     },
-    // to retrieve an asset, we can just use the same URL. you could customize this to add extra
-    // auth, or to serve optimized versions / sizes of the asset.
     resolve(asset) {
-      return asset.props.src;
+      let src = asset.props.src
+
+      if (!src) {
+        return null
+      }
+
+      if (src.startsWith('asset:')) {
+        let objectId = src.split('asset:')[1]
+        return `${server}/uploads/${objectId}`
+      }
+
+      return null
     },
-  };
-}
-
-// How does our server handle bookmark unfurling?
-async function unfurlBookmarkUrl({
-  url,
-  server,
-}: {
-  url: string;
-  server: string;
-}): Promise<TLBookmarkAsset> {
-  const asset: TLBookmarkAsset = {
-    id: AssetRecordType.createId(getHashForString(url)),
-    typeName: "asset",
-    type: "bookmark",
-    meta: {},
-    props: {
-      src: url,
-      description: "",
-      image: "",
-      favicon: "",
-      title: "",
-    },
-  };
-
-  try {
-    const response = await fetch(
-      `${server}/unfurl?url=${encodeURIComponent(url)}`,
-    );
-    const data = await response.json();
-
-    asset.props.description = data?.description ?? "";
-    asset.props.image = data?.image ?? "";
-    asset.props.favicon = data?.favicon ?? "";
-    asset.props.title = data?.title ?? "";
-  } catch (e) {
-    console.error(e);
   }
-
-  return asset;
 }

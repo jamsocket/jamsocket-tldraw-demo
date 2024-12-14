@@ -2,7 +2,7 @@ ARG NODE_VERSION=20.11.0
 
 FROM node:${NODE_VERSION}-alpine
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
 
@@ -17,4 +17,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ./node_modules/.bin/tsx src/main.ts
+CMD ["./node_modules/.bin/tsx", "src/main.ts"]

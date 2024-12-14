@@ -1,15 +1,58 @@
-import { mkdir, readFile, writeFile } from 'fs/promises'
-import { join, resolve } from 'path'
 import { Readable } from 'stream'
+import { LRUCache } from 'lru-cache'
+import { readFromS3, writeToS3 } from './persist'
 
-// We are just using the filesystem to store assets
-const DIR = resolve('./.assets')
+const SIZE_LIMIT_BYTES = 500 * 1024 * 1024 // 500MB
 
-export async function storeAsset(id: string, stream: Readable) {
-  await mkdir(DIR, { recursive: true })
-  await writeFile(join(DIR, id), stream)
+async function readStream(stream: Readable) {
+  const chunks: Buffer[] = []
+  for await (const chunk of stream) {
+    chunks.push(Buffer.from(chunk))
+  }
+
+  return new Uint8Array(Buffer.concat(chunks))
 }
 
-export async function loadAsset(id: string) {
-  return await readFile(join(DIR, id))
+type Asset = {
+  data: Uint8Array
+}
+
+const CACHE = new LRUCache<string, Asset>({
+  maxSize: SIZE_LIMIT_BYTES,
+  sizeCalculation: (asset) => asset.data.length,
+  updateAgeOnGet: true,
+})
+
+export async function storeAsset(id: string, stream: Readable) {
+  try {
+    const data = await readStream(stream)
+    CACHE.set(id, { data })
+
+    await writeToS3(`assets/${id}`, data)
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+export async function loadAsset(id: string): Promise<Uint8Array | null> {
+  let asset = null
+  asset = CACHE.get(id)
+
+  if (asset) {
+    console.log('from cache', id)
+    return asset.data
+  }
+
+  asset = await readFromS3(`assets/${id}`)
+
+  if (asset) {
+    console.log('from s3', id)
+    CACHE.set(id, { data: asset })
+    return asset
+  }
+
+  console.log('not found', id)
+
+  return null
 }
