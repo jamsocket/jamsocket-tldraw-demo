@@ -19,11 +19,8 @@ function App(props: AppProps) {
     [props.server],
   );
 
-  // Create a store connected to multiplayer.
   const store = useSync({
-    // We need to know the websocket's URI...
     uri: `${props.server}/connect/${props.roomId}`,
-    // ...and how to handle static assets like images & videos
     assets: multiplayerAssets,
   });
 
@@ -60,7 +57,6 @@ function getMultiplayerAssets(server: string): TLAssetStore {
       return url;
     },
     resolve(asset) {
-      console.log('asset', asset)
       if (asset.props.src === null) {
         return null;
       }
