@@ -4,7 +4,7 @@ import { Readable } from 'stream'
 const BUCKET = process.env.STORAGE_BUCKET
 const BUCKET_PREFIX = process.env.STORAGE_PREFIX
 
-const BUCKET_PATH = `${BUCKET_PREFIX}/tldraw-doc.json`
+// const BUCKET_PATH = `${BUCKET_PREFIX}/tldraw-doc.json`
 
 let s3Client: S3Client | null = null
 if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
@@ -15,33 +15,37 @@ if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
   console.warn('AWS credentials not found. Persistence will be disabled.')
 }
 
-export async function writeToS3(data: string) {
+export async function writeToS3(path: string, data: string | Uint8Array) {
   if (!s3Client) {
     return
   }
 
-  console.log('writing', BUCKET, BUCKET_PATH)
+  let fullPath = `${BUCKET_PREFIX}/${path}`
+
+  console.log('writing', BUCKET, fullPath)
 
   const command = new PutObjectCommand({
     Bucket: BUCKET,
-    Key: BUCKET_PATH,
+    Key: fullPath,
     Body: data,
   })
 
   return await s3Client.send(command)
 }
 
-export async function readFromS3(): Promise<string | null> {
+export async function readFromS3(path: string): Promise<Buffer | null> {
   if (!s3Client) {
     return null
   }
 
+  let fullPath = `${BUCKET_PREFIX}/${path}`
+
   const command = new GetObjectCommand({
     Bucket: BUCKET,
-    Key: BUCKET_PATH,
+    Key: fullPath,
   })
 
-  console.log('reading', BUCKET, BUCKET_PATH)
+  console.log('reading', BUCKET, fullPath)
 
   try {
     const response = await s3Client.send(command)
@@ -52,7 +56,7 @@ export async function readFromS3(): Promise<string | null> {
         chunks.push(Buffer.from(chunk))
       }
 
-      return Buffer.concat(chunks).toString('utf-8')
+      return Buffer.concat(chunks)
     } else {
       throw new Error('Unexpected response body type')
     }

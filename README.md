@@ -45,3 +45,9 @@ hi@jamsocket.com for instructions on enabling this.
 
 This git repo includes a workflow for automatically building and pushing to Jamsocket. To use it, clone this repo and set the same 
 `JAMSOCKET_*` environment variables as for Vercel.
+
+### Bucket layout
+
+- `tldraw-doc.json` - the last persisted snapshot
+- `wal/<id>.json` - write-ahead log
+- `assets/<id>` - uploaded assets
