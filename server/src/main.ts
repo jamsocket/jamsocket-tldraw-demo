@@ -3,6 +3,7 @@ import websocketPlugin from '@fastify/websocket'
 import fastify from 'fastify'
 import { loadAsset, storeAsset } from './assets'
 import { getRoomState } from './rooms'
+import { unfurl } from './unfurl'
 
 const PORT = parseInt(process.env.PORT || '8080')
 export const ROOM_ID = process.env.SESSION_BACKEND_KEY || 'default'
@@ -47,6 +48,11 @@ async function main() {
 
       res.send(data)
     })
+  })
+
+  app.get('/unfurl', async (req, res) => {
+    const url = (req.query as any).url as string
+    res.send(await unfurl(url))
   })
 
   app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
