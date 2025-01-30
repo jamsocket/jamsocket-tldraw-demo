@@ -1,7 +1,8 @@
 'use client'
 
 import { useSync } from '@tldraw/sync'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
+import { SessionBackend, ConnectResponse } from '@jamsocket/client'
 import {
   AssetRecordType,
   Editor,
@@ -13,11 +14,45 @@ import {
 } from 'tldraw'
 
 interface AppProps {
-  server: string
   roomId: string
 }
 
-function App(props: AppProps) {
+export default function App(props: AppProps) {
+  const [connectResponse, setConnectResponse] = useState<ConnectResponse | null>(null)
+
+  useEffect(() => {
+    let sessionBackend: SessionBackend | null = null
+    let canceled = false
+    ;(async () => {
+      while (!canceled) {
+        const result = await fetch('/api/connect', {
+          method: 'POST',
+          body: JSON.stringify({ docId: props.roomId }),
+        })
+        const data = await result.json()
+        setConnectResponse(data)
+        sessionBackend = new SessionBackend(data)
+        await sessionBackend.onTerminatedPromise
+        sessionBackend.destroy()
+      }
+    })()
+    return () => {
+      canceled = true
+      if (sessionBackend) {
+        sessionBackend.destroy()
+      }
+    }
+  }, [props.roomId])
+
+  if (!connectResponse) {
+    return <div>Loading...</div>
+  }
+
+  const serverUrl = connectResponse.url.replace(/\/$/, '')
+  return <TldrawApp server={serverUrl} roomId={props.roomId} />
+}
+
+function TldrawApp(props: { server: string; roomId: string }) {
   let multiplayerAssets = useMemo(() => getMultiplayerAssets(props.server), [props.server])
 
   const store = useSync({
@@ -36,8 +71,6 @@ function App(props: AppProps) {
     </div>
   )
 }
-
-export default App
 
 function registerExternalAssetHandler(editor: Editor, server: string) {
   editor.registerExternalAssetHandler('url', async ({ url }) => {
