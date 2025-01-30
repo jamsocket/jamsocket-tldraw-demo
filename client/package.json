@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@jamsocket/client": "^1.1.4",
     "@jamsocket/server": "^1.1.4",
     "@tldraw/sync": "^3.6.0",
     "@tldraw/sync-core": "^3.6.0",
